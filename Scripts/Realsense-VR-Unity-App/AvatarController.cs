@@ -48,9 +48,9 @@ public float divisorX = 350f, divisorY = 400f, divisorZ = 300f;
     private Transform playerCharacter;
 
     private int cnt = 0;
-    private byte[] recievedImage = new byte[1024 * 1024 * 2];
+    private byte[] recievedImage;
 
-    private Boolean doOnce = false;
+    private bool doOnce = false;
     // Use this for initialization
     void Awake()
     {
@@ -108,37 +108,43 @@ public float divisorX = 350f, divisorY = 400f, divisorZ = 300f;
 
     private void Start()
     {
-        //_texture = new Texture2D(320, 240, Format, false);
-        gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", _texture);
-       // newTexture = new Texture2D(640, 480, Format, false);
+        _texture = new Texture2D(256, 256, Format, false);
+     //   gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", _texture);
+        gameFrame.GetComponent<Renderer>().material.mainTexture = _texture;
+        // newTexture = new Texture2D(640, 480, Format, false);
         // _texture.Apply();
     }
 
-    private Boolean call = false, end = false, newTexReady = false, texReady = false;
+    private bool call = false, end = false, newTexReady = false, texReady = false;
     private int tempCnt = 0, messCnt = 0;
     private void ClientSocket_MessageReceived(byte[] message, long counter)
     {
         //Debug.Log("Velicina: " + System.Text.ASCIIEncoding.Unicode.GetByteCount(message));
         cnt++;
         //Debug.Log(cnt);
-        Debug.Log(message.ToString());
         call = true;
         // Encode texture into PNG
-       // if (!doOnce)
-       // {
-            if (tempCnt % 2 == 0)
-            {
-                System.IO.File.WriteAllBytes(@"D:\Unity\Project\Realsense test 2\Assets\Slike\image.png", message);
-                newTexReady = true;
-            }
-            else
-            {
-                System.IO.File.WriteAllBytes(@"D:\Unity\Project\Realsense test 2\Assets\Slike\some400.png", message);
-                texReady = true;
-                doOnce = true;
-            }
-            tempCnt++;
+        // if (!doOnce)
+        // {
+        if(!newTexReady)
+        {
             recievedImage = message;
+        }
+
+        Debug.Log(recievedImage.Length + " " + message.Length);
+       /* if (tempCnt % 2 == 0)
+         {
+             System.IO.File.WriteAllBytes("Assets/Slike/image.png", recievedImage);
+         }
+         else
+         {*/
+             //System.IO.File.WriteAllBytes(@"E:\Documents\repositories\Realsense test 2\Assets\Slike\some400.png", message);
+             System.IO.File.WriteAllBytes("Assets/Slike/image.png", recievedImage);
+         //}*/
+         newTexReady = true;
+         tempCnt++;
+         //Update();
+           
      //   }
        // newTexture.LoadRawTextureData(recievedImage);
        
@@ -153,30 +159,51 @@ public float divisorX = 350f, divisorY = 400f, divisorZ = 300f;
 
     // Update is called once per frame
 
-    void FixedUpdate()
+    void Update()
     {
-        Debug.Log("fixedupdate");
+       // Debug.Log("fixedupdate");
         /*if (call)
         {
             gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", newTexture);
             call = false;
         }*/
-      /*  if(call && !end)
-        { 
-           // newTexture.LoadRawTextureData(recievedImage);
-          //  newTexture.LoadImage(System.IO.File.ReadAllBytes(@"D:\Unity\Project\Realsense test 2\Assets\some400.png"));
-         //   newTexture.Apply();
-            gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", newTexture);
-            end = true;
-        }*/
-        if(tempCnt % 2 == 0)
+        /*  if(call && !end)
+          { 
+             // newTexture.LoadRawTextureData(recievedImage);
+            //  newTexture.LoadImage(System.IO.File.ReadAllBytes(@"D:\Unity\Project\Realsense test 2\Assets\some400.png"));
+           //   newTexture.Apply();
+              gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", newTexture);
+              end = true;
+          }*/
+        if (newTexReady)
         {
-            gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", _texture);
-           
-        }else
-        {
-            gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", newTexture);
+            //   Debug.Log(recievedImage.Length);
+            //_texture.LoadImage(pngBytes);
+            _texture.LoadImage(System.IO.File.ReadAllBytes("Assets/Slike/image.png"));
+            _texture.Apply();
+           // System.IO.File.WriteAllBytes("Assets/Slike/some400.png", recievedImage);
+            Array.Clear(recievedImage, 0, 0);
+            /* if (tempCnt % 2 == 0)
+             {
+                 Debug.Log("2");
+                 //  _texture.LoadImage(recievedImage);
+                 _texture.Apply();
+                 gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", _texture);
+
+                 newTexReady = false;
+             }
+             else
+             {
+                 Debug.Log("2");
+                 //newTexture.Apply();
+                 newTexture.Apply();
+                 gameFrame.GetComponent<Renderer>().material.SetTexture("_MainTex", newTexture);
+               //  _texture.LoadImage(recievedImage);
+                 newTexReady = false;
+             }*/
+            newTexReady = false;
         }
+       // tempCnt++;
         messCnt++;
         //    byte[] bytes = _texture.EncodeToPNG();
         //   File.WriteAllBytes(@"D:\Unity\Project\Realsense test 2\Assets\Slike\image" + cnt + ".png", bytes);
